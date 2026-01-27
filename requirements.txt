@@ -1,0 +1,4 @@
+cloudflare
+supabase
+boto3
+python-dotenv
