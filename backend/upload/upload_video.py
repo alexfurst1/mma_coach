@@ -1,5 +1,5 @@
-from storage.cloudflare_client import s3, bucket_name
-from storage.supabase_client import supabase
+from backend.storage.cloudflare_client import s3, bucket_name
+from backend.storage.supabase_client import supabase
 from boto3.s3.transfer import TransferConfig
 import subprocess, json
 import os
@@ -28,7 +28,7 @@ def get_video_metadata(file_path):
 
     return duration, file_type
 
-def upload_video(file_path,video_type):
+def upload_video(file_path,video_type: str):
     duration, file_type = get_video_metadata(file_path)
     try:
         video_name = os.path.basename(file_path)
@@ -45,6 +45,16 @@ def upload_video(file_path,video_type):
         )
         print(f"Successfully uploaded {video_name} to bucket.")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error uploading to cloudflare: {e}")
 
     try:
+        upsert = (
+            supabase.table('video_data')
+            .upsert({'cloudflare_key':object_key,'status':'new','video_type':video_type, 'duration':duration})
+            .execute()
+        )
+        print(f'Successfully uploaded video metadata for {video_name}')
+    except Exception as e:
+        print(f'Error with supabase video_data upload: {e}')
+
+upload_video(r'backend\upload\test_videos\IMG_2424.mov','fight')
