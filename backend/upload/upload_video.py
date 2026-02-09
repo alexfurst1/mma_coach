@@ -1,8 +1,9 @@
 from backend.storage.cloudflare_client import s3, bucket_name
 from backend.storage.supabase_client import supabase
 from boto3.s3.transfer import TransferConfig
-import subprocess, json
 import os
+from pathlib import Path
+import cv2
 
 transfer_config = TransferConfig(
     multipart_threshold=1024 * 25, # 25MB threshold for multipart
@@ -11,20 +12,20 @@ transfer_config = TransferConfig(
 )
 
 def get_video_metadata(file_path):
-    cmd = [
-        'ffprobe', #using ffprobe is extremely fast because it doesn't render the video, it only reads the header. requires ffmpeg
-        '-v', 'quiet', #reduces the lengthy chat that ffprobe usually produces
-        '-print_format', 'json', # formats output as json
-        '-show_format',  # gets info about the 'box' of the video (res,extension,size,length)
-        '-show_steams', #shows video and audio streams
-        file_path
-    ]
+    
+    file_type = Path(file_path).suffix[1:]
 
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    data = json.loads(result.stdout)
+    cap = cv2.VideoCapture(str(file_path))
 
-    duration = float(data['format']['duration'])
-    file_type = data['format']['format_name']
+    if not cap.isOpened():
+        raise ValueError(f'Could not open video file: {file_path}')
+    
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+    duration = frame_count / fps if fps > 0 else 0
+
+    cap.release()
 
     return duration, file_type
 
@@ -57,4 +58,5 @@ def upload_video(file_path,video_type: str):
     except Exception as e:
         print(f'Error with supabase video_data upload: {e}')
 
-upload_video(r'backend\upload\test_videos\IMG_2424.mov','fight')
+video_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\upload\test_videos\IMG_2424.mov'
+upload_video(video_path,'fight')

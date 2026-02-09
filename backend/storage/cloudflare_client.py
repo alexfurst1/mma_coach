@@ -1,12 +1,15 @@
 import boto3
 from botocore.config import Config
 import os
+from dotenv import load_dotenv
 
-account_id = os.environ.get('CLOUDFLARE_ACCOUNT_ID')
-access_key = os.environ.get('R2_ACCESS_KEY_ID')
-secret_key = os.environ.get('R2_SECRET_ACCESS_KEY')
-bucket_name = os.environ.get('R2_BUCKET')
-my_endpoint_url = os.environ.get('CLOUDFLARE_ENDPOINT_URL')
+load_dotenv()
+
+account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID')
+access_key = os.getenv('R2_ACCESS_KEY_ID')
+secret_key = os.getenv('R2_SECRET_ACCESS_KEY')
+bucket_name = os.getenv('R2_BUCKET')
+my_endpoint_url = os.getenv('CLOUDFLARE_ENDPOINT_URL')
 
 s3 = boto3.client(
     's3',
