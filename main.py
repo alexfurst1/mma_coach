@@ -1,8 +1,11 @@
-from backend.video.analyze_video import analyze_video
-from backend.video.video_decoder import decode_video
+from backend.video import analyze
+from backend.video import decode
 
 video_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\upload\test_videos\IMG_2424.mov'
 
-frames = decode_video(video_path)
-output = analyze_video(frames)
+#frames = decode.decode_video_general(video_path)
+#output = analyze.analyze_video_general(frames)
+
+frames = decode.decode_video_specific(video_path, 20000, 25000)
+output = analyze.analyze_video_specific(frames)
 print(output)
