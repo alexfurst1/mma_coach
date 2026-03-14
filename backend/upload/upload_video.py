@@ -49,14 +49,22 @@ def upload_video(file_path,video_type: str):
         print(f"Error uploading to cloudflare: {e}")
 
     try:
-        upsert = (
+        insert = (
             supabase.table('video_data')
-            .upsert({'cloudflare_key':object_key,'status':'new','video_type':video_type, 'duration':duration})
+            .insert({'cloudflare_key':object_key,'status':'new','video_type':video_type, 'duration':duration})
             .execute()
         )
         print(f'Successfully uploaded video metadata for {video_name}')
+
+        try:
+            unique_id = insert.data[0]['id']
+        except Exception as e:
+            print(f'Could not fetch uuid for recently uploaded video. Error: {e}')
+    
     except Exception as e:
         print(f'Error with supabase video_data upload: {e}')
+
+    return unique_id
 
 video_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\upload\test_videos\IMG_2424.mov'
 upload_video(video_path,'fight')

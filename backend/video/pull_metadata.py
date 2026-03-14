@@ -1,10 +1,10 @@
 from backend.storage.supabase_client import supabase
 
-def pull_metadata(video_id):
+def pull_metadata(cloudflare_id):
     response = (
         supabase.table('video_data')
         .select('*')
-        .eq('id',video_id)
+        .eq('cloudflare_key',cloudflare_id)
         .execute()
     )
 
