@@ -11,7 +11,7 @@ secret_key = os.getenv('R2_SECRET_ACCESS_KEY')
 bucket_name = os.getenv('R2_BUCKET')
 my_endpoint_url = os.getenv('CLOUDFLARE_ENDPOINT_URL')
 
-s3 = boto3.client(
+s3_client = boto3.client(
     's3',
     endpoint_url = my_endpoint_url,
     aws_access_key_id = access_key,
