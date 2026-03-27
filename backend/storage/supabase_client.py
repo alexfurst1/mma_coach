@@ -12,4 +12,4 @@ if not url or not key:
         'Missing supabase credentials.'
     )
 
-supabase = create_client(url,key)
+supabase_client = create_client(url,key)

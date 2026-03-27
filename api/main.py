@@ -17,6 +17,7 @@ app.add_middleware(
 
 @app.post('/upload')
 async def upload_file(file: UploadFile = File(...)):
+    filename = file.filename
     contents = await file.read()
     file_stream = io.BytesIO(contents)
     try:
@@ -39,7 +40,7 @@ async def upload_file(file: UploadFile = File(...)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error processing video metadata."
         )
-    container.close()
     metadata = upload.access_metadata(container)
     upload_video(contents, filename, metadata)
+    container.close()
 
