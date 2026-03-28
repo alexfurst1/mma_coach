@@ -1,11 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function Home() {
   const [file, setFile] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [videos, setVideos] = useState([]);
 
+  useEffect(() => {
+    fetch('http://localhost:8000/api/videos')
+    .then(response => response.json())
+    .then(data => setVideos(data));
+    }, []
+  );
+
+  handleVideoSelect((video))
+  
   const handleSubmit = async () => {
     if (!file) {
       alert('Select file first.');
@@ -22,6 +33,8 @@ export default function Home() {
 
     const result = await response.json();
     console.log(result);
+
+
 
   };
   
@@ -45,9 +58,21 @@ export default function Home() {
           
         </div>
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          
-          
+          <button onClick={() => setDropdownOpen(!dropdownOpen)}>
+            Select video
+          </button>
         </div>
+        {dropdownOpen && (
+          <div className = 'video_list'>
+            this is the video list
+            {
+              videos.map((video) =>
+              <div key={video.id} onClick={() => handleVideoSelect(video)}>
+                {video.cloudflare_key.replace('uploads/','')}
+                </div>
+                )}
+          </div>
+        )}
       </main>
     </div>
   );

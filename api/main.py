@@ -5,6 +5,8 @@ import av
 import io
 from fastapi import HTTPException, status
 from backend.upload import upload
+from backend.storage.supabase_client import supabase_client
+from backend.storage import cloudflare_client 
 
 app = FastAPI()
 
@@ -44,3 +46,26 @@ async def upload_file(file: UploadFile = File(...)):
     upload_video(contents, filename, metadata)
     container.close()
 
+@app.get('/api/videos')
+def get_videos():
+    try:
+        response = supabase_client.table('video_data').select('*').execute()
+    except Exception as e:
+        print(f'Error fetching from supabase: {e}')
+    return response.data
+
+@app.get('/api/videos/{video.id}/url')
+def get_video_url(video_id: str):
+    response = supabase_client.table('video_data').select('cloudflare_key').eq('id',video_id).execute()
+    cloudflare_key = response.data['cloudflare_key']
+
+    url = cloudflare_client.s3_client.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket':cloudflare_client.bucket_name,
+            'Key':cloudflare_key
+        },
+        ExpiresIn=3600
+    )
+
+    return {'url':url}
