@@ -54,11 +54,13 @@ def get_videos():
         print(f'Error fetching from supabase: {e}')
     return response.data
 
-@app.get('/api/videos/{video.id}/url')
+@app.get('/api/videos/{video_id}/url')
 def get_video_url(video_id: str):
-    response = supabase_client.table('video_data').select('cloudflare_key').eq('id',video_id).execute()
-    cloudflare_key = response.data['cloudflare_key']
-
+    try:
+        response = supabase_client.table('video_data').select('cloudflare_key').eq('id',video_id).execute()
+        cloudflare_key = response.data[0]['cloudflare_key']
+    except Exception as e:
+        print(f'Error fetching cloudflare video. Error: {e}')
     url = cloudflare_client.s3_client.generate_presigned_url(
         'get_object',
         Params={
