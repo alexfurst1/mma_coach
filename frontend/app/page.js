@@ -4,9 +4,11 @@ import Image from "next/image";
 import React, { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [file, setFile] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [videos, setVideos] = useState([]);
+  const [file, setFile] = useState(null); // state for uploading files to cloud
+  const [dropdownOpen, setDropdownOpen] = useState(false); // state for drop down video list
+  const [videos, setVideos] = useState([]); // state (array) for holding all fetched videos
+  const [selectedVideo, setSelectedVideo] = useState(null); // state for choosing which video to select
+  const [videoUrl, setVideoUrl] = useState(null); // state for holding the current video url to be played
 
   useEffect(() => {
     fetch('http://localhost:8000/api/videos')
@@ -15,7 +17,14 @@ export default function Home() {
     }, []
   );
 
-  handleVideoSelect((video))
+  async function handleVideoSelect(video){
+    setSelectedVideo(video)
+    setDropdownOpen(false)
+
+    const response = await fetch(`http://localhost:8000/api/videos/${video.id}/url`);
+    const data = await response.json();
+    setVideoUrl(data.url)
+  }
   
   const handleSubmit = async () => {
     if (!file) {
@@ -73,6 +82,19 @@ export default function Home() {
                 )}
           </div>
         )}
+        {videoUrl && (
+          <div style={{marginTop: '20px'}}>
+            <h3>Now Playing: {selectedVideo.cloudflare_key}</h3>
+              <video 
+              src={videoUrl} 
+              controls 
+              width="800"
+              style={{maxWidth: '100%'}}
+            >
+              Your browser doesn't support video playback.
+              </video>
+            </div>
+          )}
       </main>
     </div>
   );
