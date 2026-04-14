@@ -1,12 +1,12 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from backend.upload.upload import upload_video
-import av
-import io
+import av, io, os
 from fastapi import HTTPException, status
-from backend.upload import upload
+from backend.upload import upload, upload_results
 from backend.storage.supabase_client import supabase_client
 from backend.storage import cloudflare_client 
+from backend.video import decode, analyze
+import requests
 
 app = FastAPI()
 
@@ -43,7 +43,7 @@ async def upload_file(file: UploadFile = File(...)):
             detail="Internal error processing video metadata."
         )
     metadata = upload.access_metadata(container)
-    upload_video(contents, filename, metadata)
+    upload.upload_video(contents, filename, metadata)
     container.close()
 
 @app.get('/api/videos')
@@ -71,3 +71,48 @@ def get_video_url(video_id: str):
     )
 
     return {'url':url}
+
+@app.post('/api/analyzeGeneral')
+def analyzeGeneral(data: dict):
+    video_id = data['video_id']
+    cloudflare_key = data['video_cfkey']
+    
+    # download cloudflare video
+
+    url = cloudflare_client.s3_client.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket':cloudflare_client.bucket_name,
+            'Key':cloudflare_key
+        },
+        ExpiresIn=3600
+    )
+
+    try:
+        response=requests.get(url)
+    except Exception as e:
+        print(f'Error: {response.status_code},{e}')
+
+    with open(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4','wb') as f:
+        f.write(response.content)
+    
+    # upload pipeline
+    
+    frames_filepaths = decode.decode_video_general(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+    analyzation = analyze.analyze_video_general(frames_filepaths)
+    upload_results.upload_general(video_id,analyzation)
+
+    # clear frames folder for next analyzation
+
+    folder_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\frames_general'
+    for filename in os.listdir(folder_path):
+        filepath = os.path.join(folder_path,filename)
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+    print('frames_general has been cleared')
+
+    # delete video 
+
+    if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
+        os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+    

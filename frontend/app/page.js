@@ -17,7 +17,7 @@ export default function Home() {
     }, []
   );
 
-  async function handleVideoSelect(video){
+  async function handleVideoSelect(video){ // handles which video is currently being displayed
     setSelectedVideo(video)
     setDropdownOpen(false)
 
@@ -25,6 +25,15 @@ export default function Home() {
     const data = await response.json();
     setVideoUrl(data.url)
   }
+
+  async function handleGeneralAnalysis() {
+    const response = await fetch("http://localhost:8000/api/analyzeGeneral", {
+      method:'POST',
+      headers:{'Content-Type': 'application/json'},
+      body:JSON.stringify({video_cfkey: selectedVideo.cloudflare_key, video_id: selectedVideo.id})
+    });
+  }
+  
   
   const handleSubmit = async () => {
     if (!file) {
@@ -42,8 +51,6 @@ export default function Home() {
 
     const result = await response.json();
     console.log(result);
-
-
 
   };
   
@@ -93,6 +100,7 @@ export default function Home() {
             >
               Your browser doesn't support video playback.
               </video>
+              <button onClick={handleGeneralAnalysis}>Analyze Displayed Video</button>
             </div>
           )}
       </main>
