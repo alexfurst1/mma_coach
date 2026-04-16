@@ -115,4 +115,46 @@ def analyzeGeneral(data: dict):
 
     if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
         os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+
+@app.post('/api/analyzeLocal')
+def analyzeLocal(data: dict):
+    video_id = data['video_id']
+    cloudflare_key = data['video_cfkey']
+    startPos = data['startPos']
+    endPos = data['endPos']
+
+    url = cloudflare_client.s3_client.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket':cloudflare_client.bucket_name,
+            'Key':cloudflare_key
+        },
+        ExpiresIn=3600
+    )
+
+    try:
+        response=requests.get(url)
+    except Exception as e:
+        print(f'Error: {response.status_code},{e}')
+
+    with open(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4','wb') as f:
+        f.write(response.content)
+
+    frames_filepaths = decode.decode_video_specific(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4', startPos, endPos)
+    analysis = analyze.analyze_video_specific(frames_filepaths)
+    upload_results.upload_specific(video_id, analysis, startPos, endPos)
+
+    # clear frames folder, delete analyzed video from local directory.
+
+    folder_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\frames_specific'
+    for filename in os.listdir(folder_path):
+        filepath = os.path.join(folder_path,filename)
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+    print('frames_specific has been cleared')
+
+    # delete video 
+
+    if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
+        os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
     
