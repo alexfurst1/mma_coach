@@ -4,3 +4,6 @@ This is my mma coaching app for CSC 491, my Independent Project.
 
 first, run: venv/scripts/activate
 next, run: pip install -r requirements.txt
+
+to run react server: npm run dev
+to run api server: uvicorn api.main:app --reload
