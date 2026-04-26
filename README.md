@@ -1,4 +1,4 @@
-This is my mma coaching app for CSC 491, my Independent Project.
+# This is my mma coaching web app for CSC 491, my Independent Project.
 
 1. in root directory, run: venv/scripts/activate
 2.  run: pip install -r requirements.txt
