@@ -37,11 +37,12 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
     video.set(cv2.CAP_PROP_POS_MSEC, start_pos)
     i = 1
 
-    skip_amount = (end_pos - start_pos) / 50 # i want about 50 frames, just like the general decode method.
+    skip_amount = float(end_pos - start_pos) / 50 # i want about 50 frames, takes about 4-8 minutes for model to process on my laptop
+    time_ms = video.get(cv2.CAP_PROP_POS_MSEC)
+
 
     while True:
         success, frame = video.read()
-        time_ms = video.get(cv2.CAP_PROP_POS_MSEC)
 
         if not success:
             print(f'decode_video_specfic: Failed to retrieve frame from video at {time_ms/1000} seconds. (Or last frame was met)')
@@ -54,7 +55,9 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
         if not os.path.exists(f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_specific/frame{i}.jpg'):
             cv2.imwrite(filepath,frame)
 
-        video.set(cv2.CAP_PROP_POS_MSEC, (time_ms + skip_amount))
+        time_ms += skip_amount
+
+        video.set(cv2.CAP_PROP_POS_MSEC, time_ms)
         i += 1
 
     video.release()

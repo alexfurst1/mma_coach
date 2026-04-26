@@ -101,6 +101,7 @@ def analyzeGeneral(data: dict):
     frames_filepaths = decode.decode_video_general(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
     analyzation = analyze.analyze_video_general(frames_filepaths)
     upload_results.upload_general(video_id,analyzation)
+    print("Video analyzed, and feedback pushed to supabase.")
 
     # clear frames folder for next analyzation
 
@@ -115,13 +116,14 @@ def analyzeGeneral(data: dict):
 
     if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
         os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+        print("video removed")
 
 @app.post('/api/analyzeLocal')
 def analyzeLocal(data: dict):
     video_id = data['video_id']
     cloudflare_key = data['video_cfkey']
-    startPos = data['startPos']
-    endPos = data['endPos']
+    startPos = float(data['startPos'])
+    endPos = float(data['endPos'])
 
     url = cloudflare_client.s3_client.generate_presigned_url(
         'get_object',
@@ -143,6 +145,7 @@ def analyzeLocal(data: dict):
     frames_filepaths = decode.decode_video_specific(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4', startPos, endPos)
     analysis = analyze.analyze_video_specific(frames_filepaths)
     upload_results.upload_specific(video_id, analysis, startPos, endPos)
+    print("timestamp analyzation completed and uploaded to supabase.")
 
     # clear frames folder, delete analyzed video from local directory.
 
@@ -157,4 +160,24 @@ def analyzeLocal(data: dict):
 
     if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
         os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+        print("video removed")
     
+@app.get('/getAnalysisGeneral/{video_id}')
+def get_general(video_id):
+    try:
+        response = supabase_client.table('summaries').select('*').eq('video_id',video_id).execute()
+        data = response.data
+        return data
+    except Exception as e:
+        print(f'Error: {e}')
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get('/getAnalysisLocal/{video_id}')    
+def get_local(video_id):
+    try:
+        response = supabase_client.table('timestamps').select('*').eq('video_id',video_id).execute()
+        data = response.data
+        return data
+    except Exception as e: #
+        print(f'Error: {e}')
+        raise HTTPException(status_code=500, detail=str(e))
