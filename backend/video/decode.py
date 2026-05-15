@@ -2,6 +2,7 @@
 
 import cv2
 import os
+import statistics
 
 def decode_video_general(video_path:str):
     
@@ -16,6 +17,8 @@ def decode_video_general(video_path:str):
         if not success:
             print(f'decode_video_general: Failed to retrieve frame from video at {time_ms/1000} seconds.')
             break
+        # need to check if frame is blurry or not
+
 
         filepath = f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_general/frame{i}.jpg'
         frames_filepaths.append(filepath)
@@ -40,7 +43,6 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
     skip_amount = float(end_pos - start_pos) / 50 # i want about 50 frames, takes about 4-8 minutes for model to process on my laptop
     time_ms = video.get(cv2.CAP_PROP_POS_MSEC)
 
-
     while True:
         success, frame = video.read()
 
@@ -64,5 +66,31 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
     print('Specific frames saved successfully.')
     
     return frames_filepaths
+
+def get_avg_blur(video_path: str):
+    video = cv2.VideoCapture(video_path)
+    blur_vars = []
+
+    while True:
+        success, frame = video.read()
+        
+        if not success:
+            print("get_avg_blur failed or finished")
+            break
+        
+        # convert to grayscale. laplacian, used for finding blurryness, doesn't work with color
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
+
+        laplacian_matrix = cv2.Laplacian(frame, cv2.CV_64F)
+        blur_vars.append(laplacian_matrix.var())
+
+    video.release()
+    return statistics.mean(blur_vars)
+
+
+
+
+
+
 
 

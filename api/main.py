@@ -178,6 +178,6 @@ def get_local(video_id):
         response = supabase_client.table('timestamps').select('*').eq('video_id',video_id).execute()
         data = response.data
         return data
-    except Exception as e: #
+    except Exception as e: 
         print(f'Error: {e}')
         raise HTTPException(status_code=500, detail=str(e))
