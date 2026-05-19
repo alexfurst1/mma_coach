@@ -124,10 +124,10 @@ export default function Home() {
               onChange={(e) => setFightType(e.target.value)}
             >
               <option value="" disabled>Select fight type:</option>
-              <option value="llava">Spar</option>
-              <option value="llava">Padwork</option>
-              <option value="llava">Amateur Fight</option>
-              <option value="llava">Professional Fight</option>
+              <option value="Spar">Spar</option>
+              <option value="Padwork">Padwork</option>
+              <option value="Amateur Fight">Amateur Fight</option>
+              <option value="Professional Fight">Professional Fight</option>
             </select>
 
             <select 
@@ -135,9 +135,10 @@ export default function Home() {
               onChange={(e) => setSport(e.target.value)}
             >
               <option value="" disabled>Select sport:</option>
-              <option value="llava">Muay Thai</option>
-              <option value="claude">MMA</option>
-              <option value="claude">Boxing</option>
+              <option value="Muay Thai">Muay Thai</option>
+              <option value="MMA">MMA</option>
+              <option value="Boxing">Boxing</option>
+              <option value="Dutch Kickboxing">Dutch Kickboxing</option>
             </select>
             
           </div>
