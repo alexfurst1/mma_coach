@@ -35,15 +35,17 @@ def upload_video(file, filename, metadata):
     except Exception as e:
         print(f'Error uploading metadata to supabase: {e}')
 
-def access_metadata(container):
+def access_metadata(container,fight_type,sport):
     video_stream = container.streams.video[0]
 
     metadata = {
         'file_type':None,
         'duration':float(container.duration / 1000000),
         'fps':float(video_stream.average_rate),
-        'codec':video_stream.codec_context.name # just in case codec is needed
+        'fight_type':fight_type,
+        'sport':sport 
     }
+    
 
     container.close()
     return metadata

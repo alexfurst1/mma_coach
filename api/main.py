@@ -18,10 +18,13 @@ app.add_middleware(
 )
 
 @app.post('/upload')
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file( fightType,sport, file: UploadFile = File(...)):
+    fightType = str(fightType)
+    sport = str(sport)
     filename = file.filename
     contents = await file.read()
     file_stream = io.BytesIO(contents)
+    
     try:
         container = av.open(file_stream)
     
@@ -42,7 +45,7 @@ async def upload_file(file: UploadFile = File(...)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error processing video metadata."
         )
-    metadata = upload.access_metadata(container)
+    metadata = upload.access_metadata(container,fightType,sport)
     upload.upload_video(contents, filename, metadata)
     container.close()
 
@@ -181,3 +184,4 @@ def get_local(video_id):
     except Exception as e: 
         print(f'Error: {e}')
         raise HTTPException(status_code=500, detail=str(e))
+    

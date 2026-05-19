@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 export default function Home() {
   const [file, setFile] = useState(null); // state for uploading files to cloud
   const [dropdownOpen, setDropdownOpen] = useState(false); // state for drop down video list
+  const [fightType, setFightType] = useState("")
+  const [sport, setSport] = useState("")
   const [videos, setVideos] = useState([]); // state (array) for holding all fetched videos
   const [selectedVideo, setSelectedVideo] = useState(null); // state for choosing which video to select
   const [videoUrl, setVideoUrl] = useState(null); // state for holding the current video url to be displayed
@@ -87,9 +89,15 @@ export default function Home() {
       alert('Select file first.');
       return;
     }
+    if (fightType == "" || sport == ""){
+      alert('Select fight type and sport first.');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file',file);
+    formData.append('fightType',fightType);
+    formData.append('sport',sport);
 
     const response = await fetch("http://localhost:8000/upload", {
       method: 'POST',
@@ -110,7 +118,27 @@ export default function Home() {
               MMA Coaching Web App
             </h1>
             <input type='file' name='input' onChange={(e) => setFile(e.target.files[0])}/>
-            <button onClick={handleSubmit}>Upload</button>
+            <button onClick={handleSubmit}><strong>Upload</strong> (must fill out fight type and sport first)</button>
+            <select 
+              value={fightType} 
+              onChange={(e) => setFightType(e.target.value)}
+            >
+              <option value="" disabled>Select fight type:</option>
+              <option value="llava">Spar</option>
+              <option value="llava">Padwork</option>
+              <option value="llava">Amateur Fight</option>
+              <option value="llava">Professional Fight</option>
+            </select>
+
+            <select 
+              value={sport} 
+              onChange={(e) => setSport(e.target.value)}
+            >
+              <option value="" disabled>Select sport:</option>
+              <option value="llava">Muay Thai</option>
+              <option value="claude">MMA</option>
+              <option value="claude">Boxing</option>
+            </select>
             
           </div>
           <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
@@ -162,12 +190,12 @@ export default function Home() {
                 </div>
             )}
             </div>
-              <div className="flex-1 flex flex-row gap-6 border-l border-gray-300 pl-8">
-                <h2 className="text-2xl font-semibold text-black dark:text-zinc-50">
-                  Analyis results will appear here
-                </h2>
-                <br />
-              </div>
+                <div className="flex-1 flex flex-row gap-6 border-l border-gray-300 pl-8">
+                  <h2 className="text-2xl font-semibold text-black dark:text-zinc-50">
+                    Analyis results will appear here
+                  </h2>
+                  <br />
+                </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2">General Summaries</h3>
                   {videoUrl && generalSummaries && generalSummaries.length > 0 && (
@@ -180,7 +208,7 @@ export default function Home() {
                           )}
                           className="cursor-pointer hover:bg-gray-100 p-2 border-b"
                         >
-                          General Summary (click to {selectedSummary?.id === summary.id ? 'hide' : 'show'})
+                          <strong>Summary</strong> (click to {selectedSummary?.id === summary.id ? 'hide' : 'show'}) - created on {new Date(summary.created_at).toLocaleString()} 
                         </div>
                         
                         {selectedSummary?.id === summary.id && (
@@ -192,7 +220,7 @@ export default function Home() {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> 
 
               <div>
                 <h3 className="text-xl font-semibold mb-2">Timestamped Summaries</h3>
@@ -208,7 +236,7 @@ export default function Home() {
                                 )}
                                 className="cursor-pointer hover:bg-gray-100 p-2 border-b"
                               >
-                                {timestamp.t_start_seconds}s - {timestamp.t_end_seconds}s
+                                <strong>{timestamp.t_start_seconds}s - {timestamp.t_end_seconds}</strong> (click to {selectedTimestamp?.id === timestamp.id ? 'hide' : 'show'}) - created on {new Date(timestamp.created_at).toLocaleString()} 
                               </div>
 
                               {selectedTimestamp?.id === timestamp.id && (
@@ -223,6 +251,7 @@ export default function Home() {
                     </div>
                   )}
               </div>
+              
         
       </main>
     </div>

@@ -9,16 +9,18 @@ def decode_video_general(video_path:str):
     frames_filepaths = []
     video = cv2.VideoCapture(video_path)
     i = 1
+    avg_blur = get_avg_blur(video_path)
 
     while True:
         success, frame = video.read()
+        
         time_ms = video.get(cv2.CAP_PROP_POS_MSEC)
         
         if not success:
             print(f'decode_video_general: Failed to retrieve frame from video at {time_ms/1000} seconds.')
             break
-        # need to check if frame is blurry or not
-
+        if is_blurry(frame, avg_blur): # video.read() when called iterates its own pointer, so continue works here
+            continue
 
         filepath = f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_general/frame{i}.jpg'
         frames_filepaths.append(filepath)
@@ -39,6 +41,7 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
     video = cv2.VideoCapture(video_path)
     video.set(cv2.CAP_PROP_POS_MSEC, start_pos)
     i = 1
+    avg_blur = get_avg_blur(video_path)
 
     skip_amount = float(end_pos - start_pos) / 50 # i want about 50 frames, takes about 4-8 minutes for model to process on my laptop
     time_ms = video.get(cv2.CAP_PROP_POS_MSEC)
@@ -49,8 +52,10 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
         if not success:
             print(f'decode_video_specfic: Failed to retrieve frame from video at {time_ms/1000} seconds. (Or last frame was met)')
             break
-        if time_ms >= end_pos:
+        elif time_ms >= end_pos:
             break
+        elif is_blurry(frame, avg_blur): 
+            continue
         
         filepath = f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_specific/frame{i}.jpg'
         frames_filepaths.append(filepath)
@@ -87,10 +92,9 @@ def get_avg_blur(video_path: str):
     video.release()
     return statistics.mean(blur_vars)
 
-
-
-
-
-
-
-
+def is_blurry(frame, avg_blur:float):
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    laplacian_matrix = cv2.Laplacian(frame, cv2.CV_64F)
+    if laplacian_matrix.var() < avg_blur:
+        return True
+    return False
