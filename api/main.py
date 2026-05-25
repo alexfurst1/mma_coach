@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 import av, io, os
 from fastapi import HTTPException, status
@@ -18,12 +18,10 @@ app.add_middleware(
 )
 
 @app.post('/upload')
-async def upload_file( fightType,sport, file: UploadFile = File(...)):
-    fightType = str(fightType)
-    sport = str(sport)
+async def upload_file(fightType:str = Form(...),sport:str = Form(...), file: UploadFile = File(...)):
     filename = file.filename
-    contents = await file.read()
-    file_stream = io.BytesIO(contents)
+    contents = await file.read() # loads file into memory as bytes
+    file_stream = io.BytesIO(contents) # wraps bytes in a stream
     
     try:
         container = av.open(file_stream)
@@ -46,7 +44,8 @@ async def upload_file( fightType,sport, file: UploadFile = File(...)):
             detail="Internal error processing video metadata."
         )
     metadata = upload.access_metadata(container,fightType,sport)
-    upload.upload_video(contents, filename, metadata)
+    await file.seek(0)
+    await upload.upload_video(file, filename, metadata)
     container.close()
 
 @app.get('/api/videos')
@@ -79,6 +78,8 @@ def get_video_url(video_id: str):
 def analyzeGeneral(data: dict):
     video_id = data['video_id']
     cloudflare_key = data['video_cfkey']
+    fight_type = str(data['fight_type'])
+    sport = str(data['sport'])
     
     # download cloudflare video
 
@@ -102,7 +103,7 @@ def analyzeGeneral(data: dict):
     # upload pipeline
     
     frames_filepaths = decode.decode_video_general(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
-    analyzation = analyze.analyze_video_general(frames_filepaths)
+    analyzation = analyze.analyze_video_general(frames_filepaths,sport,fight_type)
     upload_results.upload_general(video_id,analyzation)
     print("Video analyzed, and feedback pushed to supabase.")
 
@@ -127,6 +128,8 @@ def analyzeLocal(data: dict):
     cloudflare_key = data['video_cfkey']
     startPos = float(data['startPos'])
     endPos = float(data['endPos'])
+    sport = str(data['sport'])
+    fight_type = str(data['fight_type'])
 
     url = cloudflare_client.s3_client.generate_presigned_url(
         'get_object',
@@ -146,7 +149,7 @@ def analyzeLocal(data: dict):
         f.write(response.content)
 
     frames_filepaths = decode.decode_video_specific(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4', startPos, endPos)
-    analysis = analyze.analyze_video_specific(frames_filepaths)
+    analysis = analyze.analyze_video_specific(frames_filepaths,sport,fight_type)
     upload_results.upload_specific(video_id, analysis, startPos, endPos)
     print("timestamp analyzation completed and uploaded to supabase.")
 

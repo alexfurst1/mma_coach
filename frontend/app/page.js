@@ -52,7 +52,7 @@ export default function Home() {
     const response = await fetch("http://localhost:8000/api/analyzeGeneral", {
       method:'POST',
       headers:{'Content-Type': 'application/json'},
-      body:JSON.stringify({video_cfkey: selectedVideo.cloudflare_key, video_id: selectedVideo.id})
+      body:JSON.stringify({video_cfkey: selectedVideo.cloudflare_key, video_id: selectedVideo.id, sport: selectedVideo.sport, fight_type: selectedVideo.fight_type})
     });
     console.log('Response received:', response.status);
 
@@ -69,7 +69,7 @@ export default function Home() {
       const response = await fetch(`http://localhost:8000/api/analyzeLocal`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body:JSON.stringify({video_cfkey: selectedVideo.cloudflare_key, video_id: selectedVideo.id, startPos: startPos, endPos: endPos})
+        body:JSON.stringify({video_cfkey: selectedVideo.cloudflare_key, video_id: selectedVideo.id, startPos: startPos, endPos: endPos, sport: selectedVideo.sport, fight_type:selectedVideo.fight_type})
       });
       console.log('Response received:', response.status);
 
@@ -95,17 +95,23 @@ export default function Home() {
     }
 
     const formData = new FormData();
-    formData.append('file',file);
     formData.append('fightType',fightType);
     formData.append('sport',sport);
+    formData.append('file',file);
 
     const response = await fetch("http://localhost:8000/upload", {
       method: 'POST',
       body: formData
     });
 
-    const result = await response.json();
-    console.log(result);
+    console.log('Response received:', response.status);
+
+    await response.json()
+
+    const new_response = await fetch(`http://localhost:8000/api/videos`)
+    const data = await new_response.json();
+    setVideos(data);
+    console.log(data);
 
   };
   
