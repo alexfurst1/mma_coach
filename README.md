@@ -2,52 +2,46 @@
 
 An intelligent web application that analyzes Muay Thai sparring footage and provides detailed coaching feedback on technique, footwork, and strategy.
 
-## 🎯 Problem
+## Problem
 
 Amateur fighters need constructive technique feedback but lack access to affordable coaching. Traditional video review is time-consuming and requires expert knowledge.
 
-## 💡 Solution
+## Solution
 
-Automated AI-powered video analysis that identifies strengths, weaknesses, and areas for improvement in real-time fight, sparring, or training footage.
+I created an MMA Coaching Web-App that can analyze different types of combat sport footage ranging from amateur and professional fight, sparring, padwork, and training footage, ranging from the sports of MMA, Muay Thai Kickboxing, Dutch Kickboxing, and traditional Boxing. 
 
-## ✨ Features
+## Features
 
-- **Video Upload & Management** - Cloud storage with instant playback
-- **General Fight Analysis** - Overall performance assessment across entire bout
-- **Timestamped Breakdown** - Detailed analysis of specific sequences
-- **Technique Identification** - Fighters identified by glove color
-- **Actionable Feedback** - Concrete suggestions for improvement
+- **Video Upload & Management** - Cloud video and metadata storage with instant playback - stores your videos, info about each video, and your AI analyses.
+- **General Fight Analysis** - Overall performance assessment across entire video
+- **Timestamped Breakdown** - Detailed analysis of specific sequences, user can choose start and end point of subclip.
+- **Actionable Feedback** - Provides strenghts, weaknesses, and areas to improve on for each fighter.
+- **User Friendly UX** - Friendly browser user interface for non-technical users
 
-## 🛠️ Tech Stack
+## Constraints
+
+- Zero budget
+- 16 weeks to complete MVP
+- Everything locally hosted had to run on my laptop, with only 16 GB RAM and only a CPU
+
+## Tech Stack
 
 ### Frontend
 - **Next.js 14** - React framework with App Router
 - **React** - UI components and state management
-- **Tailwind CSS** - Styling
 
 ### Backend
-- **Python 3.11** - Core backend logic
+- **Python 3.13.11** - Core backend logic
 - **FastAPI** - RESTful API endpoints
 - **OpenCV** - Video processing and frame extraction
 - **LLaVA 7B** - Local vision-language model for analysis
+- **Llama3.1 8B** - Local LLM model for aggregating LlaVa responses into single cohesive response
 - **Ollama** - LLM runtime
 
 ### Infrastructure
 - **Supabase** - PostgreSQL database for metadata and analysis results
 - **Cloudflare R2** - S3-compatible object storage for videos
 - **Local-first Architecture** - Zero cloud compute costs
-
-## 🏗️ Architecture
-```
-User → Next.js Frontend (localhost:3000)
-         ↓
-    FastAPI Backend (localhost:8000)
-         ↓
-    ┌────┴────┬─────────┬──────────┐
-    ↓         ↓         ↓          ↓
-  OpenCV   LLaVA   Supabase   Cloudflare R2
-  (Frames) (AI)   (Metadata)  (Videos)
-```
 
 ### Key Design Decisions
 
@@ -66,7 +60,7 @@ User → Next.js Frontend (localhost:3000)
 - Claude Vision API ready for production upgrade
 - Documented quality-cost tradeoff
 
-## 📊 Analysis Pipeline
+## Analysis Pipeline
 
 1. **Video Upload** → Stored in Cloudflare R2
 2. **Metadata Extraction** → Duration, FPS, format saved to Supabase
@@ -75,7 +69,7 @@ User → Next.js Frontend (localhost:3000)
 5. **Result Storage** → Feedback saved to Supabase
 6. **Display** → Results rendered in interactive UI
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -93,9 +87,10 @@ git clone https://github.com/yourusername/mma-coach.git
 cd mma-coach
 ```
 
-**2. Install Ollama and pull LLaVA**
+**2. Install Ollama and pull models**
 ```bash
 ollama pull llava:7b
+ollama pull llama3.1:8b
 ```
 
 **3. Backend setup**
@@ -140,7 +135,7 @@ npm run dev
 
 Visit `http://localhost:3000`
 
-## 📖 Usage
+## Usage
 
 1. **Upload Video** - Select and upload sparring footage (.mp4, .mov)
 2. **Select Video** - Choose from uploaded videos
@@ -148,7 +143,7 @@ Visit `http://localhost:3000`
 4. **Timestamp Analysis** - Enter start/end times for specific sequence analysis
 5. **View Results** - Toggle summaries to view detailed feedback
 
-## 🔍 Example Analysis Output
+## Example Analysis Output
 
 **General Summary:**
 > Fighter in red gloves demonstrates strong orthodox stance with good guard positioning throughout rounds 1-2. Jab technique is crisp with proper hip rotation. However, footwork becomes flat-footed in later rounds, reducing mobility. Recommend: Circle more after combinations, maintain lighter stance on balls of feet.
@@ -156,59 +151,17 @@ Visit `http://localhost:3000`
 **Timestamp Analysis (0:30 - 1:00):**
 > Excellent 1-2-low kick combination at 0:42. Lead hand returns to guard immediately after jab. Rear cross shows good weight transfer. Low kick lands clean with proper hip turnover. To improve: Add head movement after the cross to avoid counter right hand.
 
-## ⚡ Performance
 
-- **Frame Extraction:** ~2-3 seconds for 50 frames
-- **AI Analysis (LLaVA 7B on CPU):** ~4-6 minutes for 50 frames
-- **Total Pipeline:** 5-8 minutes per video (CPU)
+## Future Enhancements
 
-## 🎓 Learnings & Iterations
+- **Premium Vision Model Integration** - Adding optionality to use paid LLMs and LVMs with API call
+- **Pose Estimation** - Using YOLOv8 or similar technology to track each fighter's movements better before sending to analysis for increased accuracy
+- **Progress Tracking and Logging** - Track improvement over time using RAG
+- **Mobile App** - React native to allow for easy uploads and analysis
 
-### Iteration 1: Architecture Selection
-- **Challenge:** Balance between cost, speed, and quality
-- **Decision:** Local-first with LLaVA for MVP, Claude Vision for production
-- **Result:** Zero ongoing costs, acceptable quality for demonstration
+## Technical Tradeoffs
 
-### Iteration 2: Frame Extraction
-- **Initial Approach:** 50 frames per video
-- **Issue:** LLaVA context overload, slow processing
-- **Solution:** Reduced to 10-15 frames for general analysis, 20-30 for timestamps
-- **Impact:** 60% faster processing, maintained analysis quality
-
-### Iteration 3: User Feedback
-- **Testing:** 3 fighters from local gym
-- **Feedback:** "Generic observations" vs "actionable technique advice"
-- **Fix:** Refined prompts to focus on specific techniques (stance, combinations, defense)
-- **Result:** Improved perceived usefulness
-
-## 🔮 Future Enhancements
-
-- **Claude Vision Integration** - Premium tier with superior analysis quality
-- **Video Trimming** - In-app editing before analysis
-- **Comparison Mode** - Side-by-side analysis of multiple sessions
-- **Progress Tracking** - Track improvement over time
-- **Mobile App** - React Native for on-the-go recording and analysis
-
-## 🤔 Technical Tradeoffs
-
-### LLaVA vs Claude Vision
-
-| Factor | LLaVA 7B | Claude Vision |
-|--------|----------|---------------|
-| Cost | Free | ~$0.10-0.50/video |
-| Speed | 5-8 min (CPU) | 30-60 sec |
-| Quality | Good | Excellent |
-| Privacy | 100% local | API request |
-| Use Case | MVP/Free tier | Production/Premium |
-
-**Decision:** Ship MVP with LLaVA, offer Claude as paid upgrade in the future.
-
-## 📝 Lessons Learned
-
-1. **Local LLMs have real limitations** - Quality vs cost tradeoff is real
-2. **Frame selection matters more than quantity** - 15 well-chosen frames > 50 sequential
-3. **User testing drives improvement** - Real fighters provided invaluable feedback
-4. **MVP scope discipline** - Resisted feature creep, shipped working product
+- Using paid models is very expensive. I had zero budget to operate with, so I chose to host models locally. Unfortunately, this heavily affected the project. LlaVa 7B is very weak for image analysis. It hallucinates things, mixes up which fighter is which, and takes forever to run on my laptop (HP Envy). I think this application would be so much better if I was able to use Claude Vision or something similar.
 
 ## 👤 Author
 

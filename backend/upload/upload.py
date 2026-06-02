@@ -41,7 +41,7 @@ def access_metadata(container,fight_type,sport):
         'duration':float(container.duration / 1000000),
         'fps':float(video_stream.average_rate),
         'fight_type':fight_type,
-        'sport':sport 
+        'sport':sport
     }
     
 

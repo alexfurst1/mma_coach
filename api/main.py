@@ -7,6 +7,7 @@ from backend.storage.supabase_client import supabase_client
 from backend.storage import cloudflare_client 
 from backend.video import decode, analyze
 import requests
+import shutil
 
 app = FastAPI()
 
@@ -18,10 +19,11 @@ app.add_middleware(
 )
 
 @app.post('/upload')
-async def upload_file(fightType:str = Form(...),sport:str = Form(...), file: UploadFile = File(...)):
+async def upload_file(fight_type:str = Form(...),sport:str = Form(...), num_rounds:float = Form(...), file: UploadFile = File(...)):
     filename = file.filename
     contents = await file.read() # loads file into memory as bytes
     file_stream = io.BytesIO(contents) # wraps bytes in a stream
+    num_rounds = int(num_rounds)
     
     try:
         container = av.open(file_stream)
@@ -43,7 +45,7 @@ async def upload_file(fightType:str = Form(...),sport:str = Form(...), file: Upl
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error processing video metadata."
         )
-    metadata = upload.access_metadata(container,fightType,sport)
+    metadata = upload.access_metadata(container, fight_type, sport, num_rounds)
     await file.seek(0)
     await upload.upload_video(file, filename, metadata)
     container.close()
@@ -100,10 +102,10 @@ def analyzeGeneral(data: dict):
     with open(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4','wb') as f:
         f.write(response.content)
     
-    # upload pipeline
+    # upload pipeline -------------------------------------------------------- # 
     
-    frames_filepaths = decode.decode_video_general(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
-    analyzation = analyze.analyze_video_general(frames_filepaths,sport,fight_type)
+    divided_frames = decode.decode_video_general(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
+    analyzation = analyze.full_batch_analysis(divided_frames,sport,fight_type)
     upload_results.upload_general(video_id,analyzation)
     print("Video analyzed, and feedback pushed to supabase.")
 
@@ -111,12 +113,14 @@ def analyzeGeneral(data: dict):
 
     folder_path = r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\frames_general'
     for filename in os.listdir(folder_path):
-        filepath = os.path.join(folder_path,filename)
+        filepath = os.path.join(folder_path, filename)
         if os.path.isfile(filepath):
-            os.remove(filepath)
+            os.remove(filepath)          # delete loose files
+        elif os.path.isdir(filepath):
+            shutil.rmtree(filepath)      # delete subfolders and everything inside
     print('frames_general has been cleared')
 
-    # delete video 
+    # delete video -------------------------------------------------------------------- #
 
     if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
         os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')
@@ -162,7 +166,7 @@ def analyzeLocal(data: dict):
             os.remove(filepath)
     print('frames_specific has been cleared')
 
-    # delete video 
+    # delete video f
 
     if os.path.isfile(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4'):
         os.remove(r'C:\Users\alexf\Documents\CSC\mma_coach\backend\video\saved_videos\video.mp4')

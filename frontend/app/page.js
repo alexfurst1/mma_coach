@@ -95,7 +95,7 @@ export default function Home() {
     }
 
     const formData = new FormData();
-    formData.append('fightType',fightType);
+    formData.append('fight_type',fightType);
     formData.append('sport',sport);
     formData.append('file',file);
 
@@ -146,7 +146,6 @@ export default function Home() {
               <option value="Boxing">Boxing</option>
               <option value="Dutch Kickboxing">Dutch Kickboxing</option>
             </select>
-            
           </div>
           <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
             <button onClick={() => setDropdownOpen(!dropdownOpen)}>

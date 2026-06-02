@@ -1,14 +1,22 @@
 # video_decoder.py - decodes video into frames that can be understood by vision model
 
+from collections import defaultdict
 import cv2
 import os
 import statistics
+import numpy as np
+
+# ----------------------------------------------------------------------------------------------------------
+# decodes frames from video into subfolders of 10 or less frames each. returns a default dict of lists.
+#  each list has 10 filepaths for each frame
+# -----------------------------------------------------------------------------------------------------------
 
 def decode_video_general(video_path:str):
+
     
-    frames_filepaths = []
+    filepaths = defaultdict(list)
     video = cv2.VideoCapture(video_path)
-    i = 1
+    i = 0
     avg_blur = get_avg_blur(video_path)
 
     while True:
@@ -22,18 +30,24 @@ def decode_video_general(video_path:str):
         if is_blurry(frame, avg_blur): # video.read() when called iterates its own pointer, so continue works here
             continue
 
-        filepath = f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_general/frame{i}.jpg'
-        frames_filepaths.append(filepath)
-        if not os.path.exists(f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_general/frame{i}.jpg'):
+        # 10 frames need to go into each batch
+        # make j be i // 10, so every time 10 frames pass, another folder gets created, and all frames get added to that
+        j = i // 10
+        if not os.path.exists(f"backend/video/frames_general/batch{j}"):
+            os.mkdir(f"backend/video/frames_general/batch{j}")
+        
+        filepath = f'C:/Users/alexf/Documents/CSC/mma_coach/backend/video/frames_general/batch{j}/frame{i}.jpg'
+        if not os.path.exists(filepath):
             cv2.imwrite(filepath,frame)
-
+            filepaths[f"batch{j}"].append(filepath)
+        
         video.set(cv2.CAP_PROP_POS_MSEC, (3000 + time_ms))
         i += 1
 
     video.release()
     print('General frames saved successfully')
 
-    return frames_filepaths
+    return filepaths
 
 def decode_video_specific(video_path:str,start_pos, end_pos):
 
@@ -74,19 +88,24 @@ def decode_video_specific(video_path:str,start_pos, end_pos):
 
 def get_avg_blur(video_path: str):
     video = cv2.VideoCapture(video_path)
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    num_sample_frames = 100
     blur_vars = []
+    
+    frame_indices = np.linspace(0, total_frames-1, 100, dtype=int)
 
-    while True:
+    for sample_idx, target_frame in enumerate(frame_indices):
+
+        video.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
+        
         success, frame = video.read()
-        
         if not success:
-            print("get_avg_blur failed or finished")
             break
-        
-        # convert to grayscale. laplacian, used for finding blurryness, doesn't work with color
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
 
-        laplacian_matrix = cv2.Laplacian(frame, cv2.CV_64F)
+        # convert to grayscale. laplacian, used for finding blurryness, doesn't work with color
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
+
+        laplacian_matrix = cv2.Laplacian(gray_frame, cv2.CV_64F)
         blur_vars.append(laplacian_matrix.var())
 
     video.release()
