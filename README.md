@@ -2,6 +2,8 @@
 
 An intelligent web application that analyzes Muay Thai sparring footage and provides detailed coaching feedback on technique, footwork, and strategy.
 
+# Navigate to ,<u>demo_part1.mp4</u> and <u>demo_part2.mp4</u> for video demonstration
+
 ## Problem
 
 Amateur fighters need constructive technique feedback but lack access to affordable coaching. Traditional video review is time-consuming and requires expert knowledge.
